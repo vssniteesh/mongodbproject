@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 
 export default function AdminDashboard() {
@@ -10,6 +11,10 @@ export default function AdminDashboard() {
   const [query, setQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(null); // id of item acting on
   const [editing, setEditing] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [errorUser, setErrorUser] = useState(null);
+  const navigate = useNavigate();
 
   const fetchPending = async () => {
     setLoading(true);
@@ -40,6 +45,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     // default load approvals
     fetchPending();
+    // fetch current user for header
+    API.get('/auth/me')
+      .then((res) => setUser(res.data.user))
+      .catch(() => setErrorUser('Unable to fetch user'))
+      .finally(() => setLoadingUser(false));
   }, []);
 
   useEffect(() => {
@@ -143,6 +153,17 @@ export default function AdminDashboard() {
         <div style={styles.actions}>
           <input aria-label="Search" placeholder="Search name or email" value={query} onChange={e => setQuery(e.target.value)} style={styles.search} />
           <button onClick={() => { if (view === 'approvals') fetchPending(); else fetchDoctors(); }} style={{ padding: '10px 12px', borderRadius: 10, border: 'none', background: 'linear-gradient(90deg,#06b6d4,#0891b2)', color: '#fff', cursor: 'pointer' }}>Refresh</button>
+          {/* user name and logout */}
+          {loadingUser ? (
+            <span style={{ marginLeft: 12, color: '#64748b' }}>Loading...</span>
+          ) : errorUser ? (
+            <span style={{ marginLeft: 12, color: 'red' }}>{errorUser}</span>
+          ) : user && (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: 12 }}>
+              <div style={{ fontWeight: 700 }}>{user.name}</div>
+              <button onClick={async () => { try { await API.post('/auth/logout'); } catch (e) {} try { localStorage.clear(); } catch (e) {} navigate('/login'); }} style={{ padding: '8px 10px', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer' }}>Logout</button>
+            </div>
+          )}
         </div>
       </div>
 

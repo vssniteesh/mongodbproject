@@ -13,28 +13,37 @@ export default function DoctorsList() {
   const [submitting, setSubmitting] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [apptLoading, setApptLoading] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [errorUser, setErrorUser] = useState(null);
 
   useEffect(() => {
     if (view === 'browse') fetchDoctors();
     else fetchAppointments();
-
-    // fetch current user for header
-    API.get('/auth/me')
-      .then((res) => setUser(res.data.user))
-      .catch(() => setErrorUser('Unable to fetch user'))
-      .finally(() => setLoadingUser(false));
   }, [view]);
+
+  const fetchDoctors = async () => {
+    setLoading(true);
+    try {
+      console.log('Fetching doctors...');
+      const res = await API.get('/auth/doctors');
+      console.log('Doctors response:', res.data);
+      setDoctors(res.data.doctors || []);
+    } catch (err) {
+      console.error('Error fetching doctors:', err);
+      console.error('Error response:', err.response);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAppointments = async () => {
     setApptLoading(true);
     try {
+      console.log('Fetching appointments...');
       const res = await API.get('/auth/appointments/patient');
+      console.log('Appointments response:', res.data);
       setAppointments(res.data.appointments || []);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching appointments:', err);
+      console.error('Error response:', err.response);
     } finally {
       setApptLoading(false);
     }
@@ -76,6 +85,8 @@ export default function DoctorsList() {
   if (loading && view === 'browse') return <div className="container">Loading doctors...</div>;
   if (apptLoading && view === 'appointments') return <div className="container">Loading appointments...</div>;
 
+  console.log('Current state:', { view, doctors: doctors.length, appointments: appointments.length, loading, apptLoading });
+
   return (
     <div className="container" style={{ minHeight: '80vh' }}>
       <div className="header">
@@ -83,14 +94,20 @@ export default function DoctorsList() {
           <h1>Patient dashboard</h1>
           <p className="text-muted">Browse doctors or view your appointments.</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setView('browse')} className={`btn ${view === 'browse' ? 'btn-primary' : 'btn-ghost'}`}>Browse doctors</button>
           <button onClick={() => setView('appointments')} className={`btn ${view === 'appointments' ? 'btn-accent' : 'btn-ghost'}`}>My appointments</button>
-          {loadingUser ? <span style={{ marginLeft: 12, color: '#64748b' }}>Loading...</span> : errorUser ? <span style={{ marginLeft: 12, color: 'red' }}>{errorUser}</span> : user && <><div style={{ marginLeft: 12, fontWeight: 700 }}>{user.name}</div><button onClick={async () => { try { await API.post('/auth/logout'); } catch (e) {} try { localStorage.clear(); } catch (e) {} window.location.href = '/login'; }} className="btn btn-outline" style={{ marginLeft: 8 }}>Logout</button></>}</div>
+        </div>
       </div>
 
       {view === 'browse' && (
         <div className="grid cols-3 mt-12">
+          {doctors.length === 0 && !loading && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
+              <h3>No doctors found</h3>
+              <p>There are currently no active doctors available. Please check back later.</p>
+            </div>
+          )}
           {doctors.map((d) => (
             <div key={d._id} className="card">
               <div style={{ display: 'flex', gap: 12 }}>
@@ -121,7 +138,7 @@ export default function DoctorsList() {
 
               <div className="mt-12 text-muted">
                 <div><strong>About / Bio:</strong></div>
-                <div style={{ marginTop: 6 }}>{d.doctorInfo?.bio || 'No bio provided by doctor'}</div>
+                <div style={{ marginTop: 6 }}>No bio provided by doctor</div>
               </div>
             </div>
           ))}
@@ -131,11 +148,16 @@ export default function DoctorsList() {
       {view === 'appointments' && (
         <div className="mt-12">
           <h3 style={{ marginTop: 0 }}>My appointments</h3>
-          {appointments.length === 0 && <div className="text-muted mt-12">No appointments yet.</div>}
+          {appointments.length === 0 && !apptLoading && (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
+              <h3>No appointments found</h3>
+              <p>You haven't booked any appointments yet. Browse doctors to get started!</p>
+            </div>
+          )}
           <div className="grid mt-12">
             {appointments.map((a) => (
-              <div key={a._id} className="appt" style={{ background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 18, marginBottom: 12 }}>
-                <div className="left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div key={a._id} className="appt">
+                <div className="left">
                   <div className="avatar" style={{ background: avatarColor(a.doctor?.name || a.doctor?.email || 'D') }}>{(a.doctor?.name || a.doctor?.email || 'D').charAt(0).toUpperCase()}</div>
                   <div>
                     <div style={{ fontWeight: 800 }}>{a.doctor?.name}</div>
@@ -149,12 +171,6 @@ export default function DoctorsList() {
                 <div style={{ width: '100%', marginTop: 8 }}>
                   <div className="text-muted"><strong>Reason:</strong> {a.reason || '—'}</div>
                 </div>
-                {/* Reschedule option for patient if appointment is pending or accepted */}
-                {['pending','accepted'].includes(a.status) && (
-                  <div style={{ marginTop: 10, textAlign: 'right' }}>
-                    <button className="btn btn-outline" style={{ fontWeight: 600 }} onClick={() => openBooking(a.doctor)}>Reschedule</button>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -162,39 +178,37 @@ export default function DoctorsList() {
       )}
 
       {bookingDoctor && (
-        <>
-          <div className="modal-overlay">
-            <div className="modal">
-              <div className="modal-header">
-                <h3 style={{ margin: 0 }}>Book with Dr. {bookingDoctor.name}</h3>
-                <button onClick={() => setBookingDoctor(null)} className="btn btn-ghost">×</button>
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3 style={{ margin: 0 }}>Book with Dr. {bookingDoctor.name}</h3>
+              <button onClick={() => setBookingDoctor(null)} className="btn btn-ghost">×</button>
+            </div>
+
+            <div className="grid cols-2 mt-12">
+              <div>
+                <label>Date</label>
+                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </div>
-
-              <div className="grid cols-2 mt-12">
-                <div>
-                  <label>Date</label>
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-                </div>
-                <div>
-                  <label>Time</label>
-                  <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="mt-12">
-                <label>Reason (optional)</label>
-                <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} />
-              </div>
-
-              {message && <div className={`mt-12`} style={{ color: message.startsWith('Appointment requested') ? 'var(--success)' : 'var(--danger)' }}>{message}</div>}
-
-              <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'flex-end' }}>
-                <button onClick={() => setBookingDoctor(null)} className="btn btn-ghost">Cancel</button>
-                <button onClick={submitBooking} disabled={submitting} className="btn btn-accent">{submitting ? 'Requesting...' : 'Request appointment'}</button>
+              <div>
+                <label>Time</label>
+                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
               </div>
             </div>
+
+            <div className="mt-12">
+              <label>Reason (optional)</label>
+              <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} />
+            </div>
+
+            {message && <div className={`mt-12`} style={{ color: message.startsWith('Appointment requested') ? 'var(--success)' : 'var(--danger)' }}>{message}</div>}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'flex-end' }}>
+              <button onClick={() => setBookingDoctor(null)} className="btn btn-ghost">Cancel</button>
+              <button onClick={submitBooking} disabled={submitting} className="btn btn-accent">{submitting ? 'Requesting...' : 'Request appointment'}</button>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

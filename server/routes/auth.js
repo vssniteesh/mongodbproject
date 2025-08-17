@@ -25,7 +25,9 @@ let transporterPromise = null;
 async function getTransporter() {
   if (transporterPromise) return transporterPromise;
   transporterPromise = (async () => {
-    if (process.env.SMTP_HOST) {
+    // Check if we have SMTP configuration
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      console.log('📧 Using configured SMTP for emails');
       return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT) || 587,
@@ -33,8 +35,11 @@ async function getTransporter() {
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
       });
     }
+    
     // fallback to ethereal test account for dev
+    console.log('📧 No SMTP configured, using Ethereal test account');
     const account = await nodemailer.createTestAccount();
+    console.log('📧 Ethereal test account created:', account.user);
     return nodemailer.createTransport({
       host: account.smtp.host,
       port: account.smtp.port,
@@ -46,18 +51,43 @@ async function getTransporter() {
 }
 
 async function sendOtpEmail(user, otp) {
-  const transporter = await getTransporter();
-  const from = process.env.EMAIL_FROM || 'Book a Doctor <noreply@local.test>';
-  const to = user.email;
-  const subject = 'Your login verification code';
-  const text = `Your verification code is ${otp}. It expires in 5 minutes.`;
-  const html = `<p>Your verification code is <strong>${otp}</strong>. It expires in 5 minutes.</p>`;
+  try {
+    const transporter = await getTransporter();
+    const from = process.env.EMAIL_FROM || 'CareConnect <noreply@careconnect.com>';
+    const to = user.email;
+    const subject = 'Your CareConnect verification code';
+    const text = `Your verification code is ${otp}. It expires in 5 minutes.`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #7c3aed;">CareConnect Verification</h2>
+        <p>Hello ${user.name},</p>
+        <p>Your verification code is:</p>
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <h1 style="color: #7c3aed; font-size: 32px; margin: 0; letter-spacing: 4px;">${otp}</h1>
+        </div>
+        <p>This code expires in 5 minutes.</p>
+        <p>If you didn't request this code, please ignore this email.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">CareConnect - Find trusted doctors and book appointments</p>
+      </div>
+    `;
 
-  const info = await transporter.sendMail({ from, to, subject, text, html });
-  // if using ethereal, log preview url
-  if (nodemailer.getTestMessageUrl) {
-    const url = nodemailer.getTestMessageUrl(info);
-    if (url) console.log('Preview URL:', url);
+    const info = await transporter.sendMail({ from, to, subject, text, html });
+    console.log('✅ OTP email sent successfully to:', user.email);
+    
+    // if using ethereal, log preview url
+    if (nodemailer.getTestMessageUrl) {
+      const url = nodemailer.getTestMessageUrl(info);
+      if (url) {
+        console.log('📧 Email Preview URL (Ethereal):', url);
+        console.log('📧 Check this URL to see the email that was sent');
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending OTP email:', error);
+    throw error;
   }
 }
 
@@ -134,17 +164,30 @@ router.post('/login', async (req, res) => {
 
   // If user has twoFactor enabled, generate OTP and send
   if (user.twoFactor && user.twoFactor.enabled) {
+    console.log('🔐 2FA enabled for user:', user.email);
     // generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('🔐 Generated OTP:', otp);
     user.otpHash = hashValue(otp);
     user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     await user.save();
     try {
       await sendOtpEmail(user, otp);
-      return res.json({ requires2FA: true, method: 'email' });
+      console.log('✅ 2FA flow initiated successfully for:', user.email);
+      return res.json({ 
+        requires2FA: true, 
+        method: 'email',
+        message: 'Verification code sent to your email'
+      });
     } catch (err) {
-      console.error('Error sending OTP', err);
-      return res.status(500).json({ message: 'Failed to send OTP' });
+      console.error('❌ Error sending OTP:', err);
+      // Clear the OTP fields if email sending failed
+      user.otpHash = undefined;
+      user.otpExpires = undefined;
+      await user.save();
+      return res.status(500).json({ 
+        message: 'Failed to send verification code. Please try again or contact support.' 
+      });
     }
   }
 
@@ -180,6 +223,39 @@ router.post('/verify-otp', async (req, res) => {
   res.json(resp);
 });
 
+// Resend OTP
+router.post('/resend-otp', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email is required' });
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(400).json({ message: 'Invalid request' });
+
+  if (!user.twoFactor || !user.twoFactor.enabled) {
+    return res.status(400).json({ message: 'Two-factor authentication is not enabled' });
+  }
+
+  // generate new 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  console.log('🔐 Resending OTP:', otp);
+  user.otpHash = hashValue(otp);
+  user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  await user.save();
+
+  try {
+    await sendOtpEmail(user, otp);
+    console.log('✅ OTP resent successfully to:', user.email);
+    res.json({ message: 'New verification code sent to your email' });
+  } catch (err) {
+    console.error('❌ Error resending OTP:', err);
+    // Clear the OTP fields if email sending failed
+    user.otpHash = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+    res.status(500).json({ message: 'Failed to send verification code. Please try again.' });
+  }
+});
+
 // Forgot password - send reset link
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -196,23 +272,57 @@ router.post('/forgot-password', async (req, res) => {
 
   // send email with link
   const resetUrl = `${process.env.APP_BASE_URL || 'http://localhost:5173'}/reset-password?token=${token}&email=${encodeURIComponent(user.email)}`;
-  const transporter = await getTransporter();
-  const from = process.env.EMAIL_FROM || 'Book a Doctor <noreply@local.test>';
-  const subject = 'Reset your password';
-  const text = `Click here to reset your password: ${resetUrl}`;
-  const html = `<p>Click the link below to reset your password. This link expires in 1 hour.</p><p><a href="${resetUrl}">${resetUrl}</a></p>`;
-
+  
   try {
+    const transporter = await getTransporter();
+    const from = process.env.EMAIL_FROM || 'CareConnect <noreply@careconnect.com>';
+    const subject = 'Reset your CareConnect password';
+    const text = `Click here to reset your password: ${resetUrl}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #7c3aed;">CareConnect Password Reset</h2>
+        <p>Hello ${user.name},</p>
+        <p>We received a request to reset your password. Click the button below to create a new password:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="
+            display: inline-block;
+            background: linear-gradient(90deg, #7c3aed, #22d3ee);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+          ">Reset Password</a>
+        </div>
+        <p>This link expires in 1 hour for security reasons.</p>
+        <p>If you didn't request this password reset, please ignore this email. Your password will remain unchanged.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">CareConnect - Find trusted doctors and book appointments</p>
+      </div>
+    `;
+
     const info = await transporter.sendMail({ from, to: user.email, subject, text, html });
+    console.log('✅ Password reset email sent successfully to:', user.email);
+    
+    // if using ethereal, log preview url
     if (nodemailer.getTestMessageUrl) {
       const url = nodemailer.getTestMessageUrl(info);
-      if (url) console.log('Password reset preview URL:', url);
+      if (url) {
+        console.log('📧 Password Reset Email Preview URL (Ethereal):', url);
+        console.log('📧 Check this URL to see the password reset email');
+      }
     }
+    
+    res.json({ message: 'If that email exists, a reset link was sent' });
   } catch (err) {
-    console.error('Error sending reset email', err);
+    console.error('❌ Error sending password reset email:', err);
+    // Clear the reset token if email sending failed
+    user.resetPasswordTokenHash = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    res.status(500).json({ message: 'Failed to send reset link. Please try again.' });
   }
-
-  res.json({ message: 'If that email exists, a reset link was sent' });
 });
 
 // Reset password
@@ -234,6 +344,65 @@ router.post('/reset-password', async (req, res) => {
 
   res.json({ message: 'Password reset successful' });
 });
+
+// Enable/Disable 2FA
+router.post('/toggle-2fa', authMiddleware(), async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.twoFactor = {
+      enabled: Boolean(enabled),
+      method: 'email'
+    };
+
+    await user.save();
+    
+    console.log(`🔐 2FA ${enabled ? 'enabled' : 'disabled'} for user:`, user.email);
+    
+    res.json({ 
+      message: `Two-factor authentication ${enabled ? 'enabled' : 'disabled'} successfully`,
+      twoFactor: user.twoFactor
+    });
+  } catch (error) {
+    console.error('Error toggling 2FA:', error);
+    res.status(500).json({ message: 'Failed to update 2FA settings' });
+  }
+});
+
+// Test endpoint to enable 2FA for any user (development only)
+if (process.env.NODE_ENV === 'development') {
+  router.post('/test-enable-2fa', async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ message: 'Email is required' });
+
+      const user = await User.findOne({ email });
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      user.twoFactor = {
+        enabled: true,
+        method: 'email'
+      };
+
+      await user.save();
+      
+      console.log(`🔐 2FA enabled for testing user:`, user.email);
+      
+      res.json({ 
+        message: '2FA enabled for testing',
+        user: { email: user.email, twoFactor: user.twoFactor }
+      });
+    } catch (error) {
+      console.error('Error enabling 2FA for testing:', error);
+      res.status(500).json({ message: 'Failed to enable 2FA' });
+    }
+  });
+}
 
 // Admin: list pending doctor registrations
 router.get('/admin/pending-doctors', authMiddleware('admin'), async (req, res) => {
@@ -313,7 +482,7 @@ router.delete('/admin/doctor/:id', authMiddleware('admin'), async (req, res) => 
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.role !== 'doctor') return res.status(400).json({ message: 'Not a doctor' });
 
-    await user.remove();
+    await User.findByIdAndDelete(id);
     res.json({ message: 'Doctor deleted' });
   } catch (err) {
     console.error(err);
@@ -330,6 +499,17 @@ router.get('/me', authMiddleware(), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Logout - clear auth cookie
+router.post('/logout', (req, res) => {
+  try {
+    res.clearCookie('token', { httpOnly: true, sameSite: 'lax' });
+    return res.json({ message: 'Logged out' });
+  } catch (err) {
+    console.error('Logout error', err);
+    return res.status(500).json({ message: 'Logout failed' });
   }
 });
 
@@ -463,6 +643,26 @@ router.post('/appointments/:id/decision', authMiddleware('doctor'), async (req, 
     sendAppointmentDecisionEmail(appt.patient, appt.doctor, appt).catch(err => console.error(err));
 
     res.json({ message: 'Decision applied', appointment: appt });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Doctor: delete an appointment assigned to them
+router.delete('/appointments/:id', authMiddleware('doctor'), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.status !== 'active') return res.status(403).json({ message: 'Account not verified by admin' });
+
+    const { id } = req.params;
+    const appt = await Appointment.findById(id);
+    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
+    if (String(appt.doctor) !== String(req.user.id)) return res.status(403).json({ message: 'Forbidden' });
+
+    await Appointment.findByIdAndDelete(id);
+    res.json({ message: 'Appointment deleted' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

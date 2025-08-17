@@ -102,6 +102,37 @@ export default function Login() {
         <div style={{ marginTop: 12, fontSize: 13, color: '#475569' }}>
           Don't have an account? <button type="button" onClick={() => navigate('/register')} style={{ color: '#2563eb', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>Register</button>
         </div>
+        
+        <div style={{ marginTop: 16, textAlign: 'center', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#64748b' }}>
+            Are you an administrator?
+          </p>
+          <button 
+            type="button" 
+            onClick={() => navigate('/admin-login')}
+            style={{
+              background: 'none',
+              border: '1px solid #cbd5e1',
+              color: '#475569',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#f1f5f9';
+              e.target.style.borderColor = '#94a3b8';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = 'none';
+              e.target.style.borderColor = '#cbd5e1';
+            }}
+          >
+            Admin Login
+          </button>
+        </div>
       </form>
     </div>
   );
