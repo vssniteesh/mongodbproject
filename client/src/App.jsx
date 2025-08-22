@@ -83,8 +83,8 @@ function Header() {
       }}>
         {/* Logo and Site Name */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, fontSize: '24px', background: 'linear-gradient(90deg, var(--primary-500), var(--primary-400))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            CareConnect
+          <h1 style={{ margin: 0, fontSize: '32px', color: '#2d3748', fontWeight: 'bold', letterSpacing: '1px' }}>
+            Doctor Appointment Website
           </h1>
           <p style={{ margin: '0 0 0 15px', fontSize: 14, color: 'var(--muted)' }}>
             Find trusted doctors and book appointments
@@ -150,10 +150,10 @@ function Header() {
 function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="container site-footer" style={{ padding: '14px 20px', marginTop: 28 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <div className="text-muted">Designed and developed by Mahesh</div>
-        <div className="text-muted">© {year} CareConnect. All rights reserved.</div>
+    <footer className="container site-footer" style={{ padding: '18px 20px', marginTop: 40, background: '#f7fafc', color: '#2d3748', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontWeight: '500', fontSize: '18px' }}>Developed and Designed by Rajesh</div>
+        <div style={{ fontWeight: '500', fontSize: '16px' }}>© {year} Book a Doctor. All rights reserved.</div>
       </div>
     </footer>
   );

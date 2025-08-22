@@ -1,41 +1,76 @@
+
+
 :root {
-  /* Advanced design tokens */
-  --font-sans: Inter, system-ui, Avenir, 'Helvetica Neue', Arial, 'Noto Sans', 'Segoe UI', Roboto, 'Apple Color Emoji', 'Segoe UI Emoji';
-
-  /* Backgrounds */
-  --bg: linear-gradient(180deg,#0f172a 0%, #07143a 100%);
-  --surface: linear-gradient(180deg,#0b1228 0%, #0f1b3a 100%);
-  --card-bg: linear-gradient(180deg,#0f172a44, #0b1228cc);
-
-  /* Text */
-  --muted: #9aa6c2;
-  --text: #e6eef8;
-
-  /* Primary (vivid indigo -> cyan) */
-  --primary-600: #6d28d9;
-  --primary-500: #7c3aed;
-  --primary-400: #22d3ee; /* cyan accent stop for gradient */
-
-  /* Accent (coral/gold) */
-  --accent-500: #ff7a59;
-  --accent-600: #ffd166;
-
-  /* Neon glows */
-  --glow-primary: 0 8px 30px rgba(124,58,237,0.14);
-  --glow-accent: 0 10px 40px rgba(255,122,89,0.12);
-
-  --success: #34d399;
-  --danger: #fb7185;
-
+  --font-sans: 'Poppins', 'Segoe UI', Arial, sans-serif;
+  --bg: #f7fafc;
+  --surface: #fff;
+  --card-bg: #f7fafc;
+  --muted: #718096;
+  --text: #2d3748;
+  --primary-600: #2b6cb0;
+  --primary-500: #3182ce;
+  --primary-400: #63b3ed;
+  --accent-500: #38b2ac;
+  --accent-600: #319795;
+  --success: #48bb78;
+  --danger: #e53e3e;
   --radius: 14px;
-  --shadow-sm: 0 8px 30px rgba(2,6,23,0.6);
-  --shadow-md: 0 20px 60px rgba(2,6,23,0.7);
-
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
   font-family: var(--font-sans);
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--rainbow-bg);
+  min-height: 100vh;
+  color: #fff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #2d3748;
+  background: none;
+  text-shadow: none;
+}
+
+.card, .site-footer, .header {
+  background: var(--rainbow-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--rainbow-shadow);
+  color: #fff;
+}
+
+input, select, textarea {
+  background: rgba(255,255,255,0.12);
+  border: 2px solid #fff;
+  border-radius: var(--radius);
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px #fff;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #ff0080;
+  box-shadow: 0 0 16px #ffcd1e;
+}
+
+a {
+  color: #fff;
+  text-decoration: underline;
+  text-shadow: 0 2px 8px #ffcd1e;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  background: var(--rainbow-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rainbow-surface);
+  border-radius: 10px;
 }
 
 /* 3D floating animation for cards */

@@ -1,42 +1,89 @@
+
+
+
+body {
+  background: linear-gradient(120deg, #f7fafc 0%, #e3f0ff 50%, #f0fff3 100%);
+  min-height: 100vh;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+  color: #2d3748;
+}
+
+
 #root {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.08);
+  border: 1px solid #e3e8ee;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+
+.header {
+  background: linear-gradient(90deg, #e3f0ff 0%, #f0fff3 100%);
+  color: #2d3748;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.06);
+  border-radius: 0 0 16px 16px;
+  padding: 18px 0;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+
+.btn {
+  background: linear-gradient(90deg, #38b2ac 0%, #3182ce 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px 0 rgba(49,130,206,0.12);
+  padding: 10px 24px;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.btn:hover {
+  background: linear-gradient(90deg, #3182ce 0%, #38b2ac 100%);
+  box-shadow: 0 4px 16px 0 rgba(49,130,206,0.18);
+}
+.btn-ghost {
+  background: transparent;
+  color: #3182ce;
+  border: 2px solid #3182ce;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #38b2ac 0%, #3182ce 100%);
+  color: #fff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
 
 .card {
+  background: linear-gradient(120deg, #e3f0ff 0%, #f0fff3 100%);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.06);
   padding: 2em;
+  margin: 2em 0;
+  color: #2d3748;
+  border: 1px solid #e3e8ee;
+}
+
+
+.site-footer {
+  background: linear-gradient(90deg, #e3f0ff 0%, #f0fff3 100%);
+  color: #2d3748;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  font-weight: 500;
+  font-size: 1rem;
+  text-shadow: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .read-the-docs {
-  color: #888;
+  color: #3182ce;
+  text-shadow: none;
 }
