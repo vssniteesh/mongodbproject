@@ -1,7 +1,7 @@
-# Doctor Appointment Website (MERN)
+# MediBooker (MERN)
 
 ## Overview
-This project is a full-stack web application for booking doctor appointments, built using the MERN stack (MongoDB, Express.js, React, Node.js). It provides a modern, clean, and user-friendly interface for patients and doctors to manage appointments, profiles, and more.
+This project is a full-stack web application for booking medical appointments, built using the MERN stack (MongoDB, Express.js, React, Node.js). It provides a modern, clean, and user-friendly interface for patients and healthcare professionals to manage appointments, profiles, and more.
 
 ## Features
 - User registration and login (with JWT authentication)
@@ -21,15 +21,15 @@ This project is a full-stack web application for booking doctor appointments, bu
 ## Folder Structure
 ```
 book-a-doctor-using-mern/
-  client/        # React frontend
-  server/        # Node.js/Express backend
+   client/        # React frontend
+   server/        # Node.js/Express backend
 ```
 
 ## How It Works
-1. **User Registration/Login:** Patients and doctors can register and log in securely.
-2. **Admin Panel:** Admins can manage doctors and view appointments.
-3. **Doctor Panel:** Doctors can manage their profile and appointments.
-4. **Patient Panel:** Patients can search for doctors and book appointments.
+1. **User Registration/Login:** Patients and healthcare professionals can register and log in securely.
+2. **Admin Panel:** Admins can manage healthcare professionals and view appointments.
+3. **Healthcare Professional Panel:** Healthcare professionals can manage their profile and appointments.
+4. **Patient Panel:** Patients can search for healthcare professionals and book appointments.
 5. **Security:** JWT-based authentication and optional 2FA for sensitive actions.
 
 ## Getting Started

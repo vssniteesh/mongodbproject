@@ -73,7 +73,7 @@ export default function DoctorsList() {
     return colors[Math.abs(code) % colors.length];
   };
 
-  if (loading && view === 'browse') return <div className="container">Loading doctors...</div>;
+  if (loading && view === 'browse') return <div className="container">Loading healthcare professionals...</div>;
   if (apptLoading && view === 'appointments') return <div className="container">Loading appointments...</div>;
 
   return (
@@ -81,10 +81,10 @@ export default function DoctorsList() {
       <div className="header">
         <div>
           <h1>Patient dashboard</h1>
-          <p className="text-muted">Browse doctors or view your appointments.</p>
+          <p className="text-muted">Browse healthcare professionals or view your appointments.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={() => setView('browse')} className={`btn ${view === 'browse' ? 'btn-primary' : 'btn-ghost'}`}>Browse doctors</button>
+          <button onClick={() => setView('browse')} className={`btn ${view === 'browse' ? 'btn-primary' : 'btn-ghost'}`}>Browse professionals</button>
           <button onClick={() => setView('appointments')} className={`btn ${view === 'appointments' ? 'btn-accent' : 'btn-ghost'}`}>My appointments</button>
           {loadingUser ? <span style={{ marginLeft: 12, color: '#64748b' }}>Loading...</span> : errorUser ? <span style={{ marginLeft: 12, color: 'red' }}>{errorUser}</span> : user && <><div style={{ marginLeft: 12, fontWeight: 700 }}>{user.name}</div><button onClick={async () => { try { await API.post('/auth/logout'); } catch (e) {} try { localStorage.clear(); } catch (e) {} window.location.href = '/login'; }} className="btn btn-outline" style={{ marginLeft: 8 }}>Logout</button></>}</div>
       </div>

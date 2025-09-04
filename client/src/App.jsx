@@ -84,10 +84,10 @@ function Header() {
         {/* Logo and Site Name */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <h1 style={{ margin: 0, fontSize: '32px', color: '#2d3748', fontWeight: 'bold', letterSpacing: '1px' }}>
-            Doctor Appointment Website
+            MediBooker
           </h1>
           <p style={{ margin: '0 0 0 15px', fontSize: 14, color: 'var(--muted)' }}>
-            Find trusted doctors and book appointments
+            Find trusted healthcare professionals and book appointments
           </p>
         </div>
 
@@ -152,7 +152,7 @@ function Footer() {
   return (
     <footer className="container site-footer" style={{ padding: '18px 20px', marginTop: 40, background: '#f7fafc', color: '#2d3748', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <div style={{ fontWeight: '500', fontSize: '18px' }}>Developed and Designed by Rajesh</div>
+  <div style={{ fontWeight: '500', fontSize: '18px' }}>Developed and Designed by Niteesh</div>
         <div style={{ fontWeight: '500', fontSize: '16px' }}>© {year} Book a Doctor. All rights reserved.</div>
       </div>
     </footer>

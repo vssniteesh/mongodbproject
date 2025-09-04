@@ -76,7 +76,7 @@ export default function DoctorDashboard() {
   return (
     <div style={{ padding: 24, fontFamily: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial', background: '#f8fafc', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <h2 style={{ margin: 0 }}>Doctor dashboard</h2>
+  <h2 style={{ margin: 0 }}>Healthcare Professional Dashboard</h2>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           {loadingUser ? <span style={{ color: '#64748b' }}>Loading...</span> : errorUser ? <span style={{ color: 'red' }}>{errorUser}</span> : user && <><div style={{ fontWeight: 700 }}>{user.name}</div><button onClick={handleLogout} style={{ padding: '8px 10px', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer' }}>Logout</button></>}
         </div>

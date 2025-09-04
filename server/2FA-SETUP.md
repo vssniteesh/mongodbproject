@@ -50,7 +50,7 @@ curl -X POST http://localhost:5000/api/auth/test-enable-2fa \
 ### 3. Test the 2FA Flow
 
 1. **Start the server:**
-   ```bash
+The MediBooker application now supports Two-Factor Authentication using email verification codes. This guide will help you set up and test the 2FA functionality.
    cd server
    npm start
    ```
@@ -59,14 +59,14 @@ curl -X POST http://localhost:5000/api/auth/test-enable-2fa \
 
 3. **Login with the user:**
    - Go to `http://localhost:5173/login`
-   - Enter user credentials
+EMAIL_FROM=MediBooker <your-email@gmail.com>
    - You should be redirected to the 2FA page
 
 4. **Check for the verification code:**
    - **If using Ethereal:** Check the server console for the email preview URL
    - **If using real SMTP:** Check the user's email inbox
 
-5. **Enter the verification code** on the 2FA page
+EMAIL_FROM=MediBooker <your-email@outlook.com>
 
 ## 🔧 Troubleshooting
 
@@ -107,7 +107,6 @@ Click the URL to view the email content and get the verification code.
 - **One-time use** - OTP is cleared after verification
 - **Rate limiting** on resend attempts
 - **Secure hashing** of OTP values
-
 ## 🛠️ API Endpoints
 
 ### Authentication
