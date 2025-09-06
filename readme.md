@@ -21,6 +21,7 @@ This project is a full-stack web application for booking medical appointments, b
 ## Folder Structure
 ```
 book-a-doctor-using-mern/
+
    client/        # React frontend
    server/        # Node.js/Express backend
 ```
@@ -51,4 +52,4 @@ book-a-doctor-using-mern/
 This project is open source and free to use for educational and personal purposes.
 
 ---
-Developed and Designed by Rajesh
+Developed and Designed by Niteesh
